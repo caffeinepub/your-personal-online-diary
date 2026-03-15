@@ -837,9 +837,11 @@ function PlainPage({
             ? "text-rose-800 placeholder-pink-300 font-girlish bg-transparent"
             : "font-boyish bg-transparent"
         }`}
+        maxLength={600}
         style={{
           height: 320,
           lineHeight: "26px",
+          overflow: "hidden",
           ...(isGirlish ? {} : { color: BOY.pageText }),
         }}
       />
@@ -999,8 +1001,10 @@ function NormalPage({
               ? "text-rose-800 placeholder-pink-300 font-girlish lined-paper"
               : "font-boyish lined-paper-boy"
           }`}
+          maxLength={600}
           style={{
             lineHeight: "26.67px",
+            overflow: "hidden",
             ...(isGirlish ? {} : { color: BOY.pageText }),
           }}
         />
@@ -2247,7 +2251,7 @@ function FullPageOverlay({
 
       {/* Content — white page for boyish */}
       <div
-        className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full"
+        className="flex-1 overflow-hidden p-6 max-w-4xl mx-auto w-full"
         style={isGirlish ? {} : { background: BOY.pageWhite }}
       >
         {renderContent()}
