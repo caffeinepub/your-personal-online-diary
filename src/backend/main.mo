@@ -1,7 +1,4 @@
-import List "mo:core/List";
 import Map "mo:core/Map";
-import Array "mo:core/Array";
-import Iter "mo:core/Iter";
 import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
@@ -66,6 +63,8 @@ actor {
     };
   };
 
+  stable var nextEntryId : Nat = 0;
+
   let diaryDataStorage = Map.empty<Principal, DiaryData>();
 
   public shared ({ caller }) func saveDiaryData(data : DiaryData) : async () {
@@ -77,12 +76,13 @@ actor {
   };
 
   public shared ({ caller }) func addDiaryEntry(content : Text, pageType : PageType) : async () {
-    let timestamp = Time.now();
+    let entryId = nextEntryId;
+    nextEntryId += 1;
     let newEntry : DiaryEntry = {
-      id = timestamp.toNat();
+      id = entryId;
       content;
       pageType;
-      timestamp;
+      timestamp = Time.now();
     };
 
     let currentData = switch (diaryDataStorage.get(caller)) {
@@ -136,8 +136,7 @@ actor {
     let currentData = switch (diaryDataStorage.get(caller)) {
       case (null) { return () };
       case (?data) {
-        let currentCompletions = data.habitTracker.completions;
-        let updatedCompletions = currentCompletions.concat([Time.now()]);
+        let updatedCompletions = data.habitTracker.completions.concat([Time.now()]);
         let updatedHabitTracker = {
           habits = data.habitTracker.habits;
           completions = updatedCompletions;
