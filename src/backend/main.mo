@@ -63,9 +63,44 @@ actor {
     };
   };
 
-  stable var nextEntryId : Nat = 0;
+  var nextEntryId : Nat = 0;
 
   let diaryDataStorage = Map.empty<Principal, DiaryData>();
+
+  // HTTP request handler for sitemap.xml
+  type HeaderField = (Text, Text);
+  type HttpRequest = {
+    method : Text;
+    url : Text;
+    headers : [HeaderField];
+    body : Blob;
+  };
+  type HttpResponse = {
+    status_code : Nat16;
+    headers : [HeaderField];
+    body : Blob;
+  };
+
+  let sitemapXml : Text = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n  <url>\n    <loc>https://ourpersonaldiary-xu8.caffeine.xyz/</loc>\n    <lastmod>2026-03-16</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n</urlset>\n";
+
+  public query func http_request(req : HttpRequest) : async HttpResponse {
+    if (req.url == "/sitemap.xml" or req.url == "/sitemap.xml?") {
+      {
+        status_code = 200;
+        headers = [
+          ("Content-Type", "application/xml; charset=utf-8"),
+          ("Cache-Control", "public, max-age=86400"),
+        ];
+        body = sitemapXml.encodeUtf8();
+      };
+    } else {
+      {
+        status_code = 404;
+        headers = [("Content-Type", "text/plain")];
+        body = ("Not found").encodeUtf8();
+      };
+    };
+  };
 
   public shared ({ caller }) func saveDiaryData(data : DiaryData) : async () {
     diaryDataStorage.add(caller, data);
@@ -132,7 +167,7 @@ actor {
     diaryDataStorage.add(caller, currentData);
   };
 
-  public shared ({ caller }) func completeHabit(habitIndex : Nat) : async () {
+  public shared ({ caller }) func completeHabit(_ : Nat) : async () {
     let currentData = switch (diaryDataStorage.get(caller)) {
       case (null) { return () };
       case (?data) {
